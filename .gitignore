@@ -1,10 +1,15 @@
+# Luarocks
 /luarocks
 /lua
 /lua_modules
 /.luarocks
+zelda-dev-1.rockspec
 
-# virtualenv
+# Virtualenv
 src/bin
 src/lib
 src/pyvenv.cfg
+
+# Misc
+writeup.md
 
