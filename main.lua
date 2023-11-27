@@ -1,8 +1,10 @@
 local socket = require("socket.core")
+local json = require("json")
+
 print("socket working?")
 -- TODO: Investigate why running this crashes since installing it (correctly?). There may be other example scripts using it, first step is to REPL test
 local server, ip, port -- Scoping
-local _PORT = 8881
+local _PORT = 8885
 
 sock = socket.tcp() -- "Master" object created
 -- Use a random port offered by the OS, or a predetermined?
@@ -23,12 +25,9 @@ end
 -- print(server)
 -- local ip, port = server:getsockname()
 
-function socketRunner()
-	print("Waiting for connection...")
-	local client = sock:accept() -- Accept a new connection
-	print("New connection established")
+function socketRunner(client)
 
-	local line, err = client:receive()
+	local line, err = client:receive("*a")
 		if not err then
 			print("Received data from client: " .. line)
 			-- Process the received data as needed
@@ -37,9 +36,21 @@ function socketRunner()
 			client:send("Server received your message: " .. line .. "\n")
 		end
 
-	client:close() -- Close the client connection
+		if err then
+			print("Error encountered. Reconnecting...")
+			socket_start()
+		end
+
+	-- client:close() -- Close the client connection
 end
 
+function socket_start()
+	print("Waiting for connection...")
+	local client = sock:accept() -- Accept a new connection
+	client:settimeout(5) -- Set timeout to 5 seconds
+	print("New connection established")
+	return client
+end
 -- while true do
 -- end
 
@@ -55,6 +66,8 @@ local input = {
 	start = nil,
 	select = nil
 }
+
+local client = socket_start()
 
 -- Messing with OS. May just make a runfile instead...
 -- local command = "dir"
@@ -75,8 +88,7 @@ while true do
 	if (framecount >= 30) then
 		joypad.set(1, input) -- Spam a and start
 	end
-	socketRunner()
+	socketRunner(client)
 	emu.frameadvance()
 end
-
 
