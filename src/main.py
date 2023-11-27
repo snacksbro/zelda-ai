@@ -1,5 +1,6 @@
 import socket
 import yaml
+import json
 import sys
 import time
 
@@ -9,12 +10,13 @@ def send_input(button):
 		"button": button
 	}
 
-	yaml_str = yaml.dump(data)
-	yaml_bytes = yaml_str.encode("utf-8")
-	client_sock.sendall(yaml_bytes)
+	json_str = json.dumps(data)
+	json_bytes = json_str.encode("utf-8")
+	client_sock.sendall(json_bytes)
+	print("Sent some input")
 
 # Connect to socket server
-server_address = ("0.0.0.0", 8881)
+server_address = ("0.0.0.0", 8885)
 
 client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
