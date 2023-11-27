@@ -26,21 +26,17 @@ end
 -- local ip, port = server:getsockname()
 
 function socketRunner(client)
+	local line, err = client:receive("*l") -- Reading ONLY until a newline
+	if not err then
+		print("Received data from client: " .. line)
+		-- Process the received data as needed
 
-	local line, err = client:receive("*a")
-		if not err then
-			print("Received data from client: " .. line)
-			-- Process the received data as needed
-
-			-- Example: Send a response back to the client
-			client:send("Server received your message: " .. line .. "\n")
-		end
-
-		if err then
-			print("Error encountered. Reconnecting...")
-			socket_start()
-		end
-
+		-- Example: Send a response back to the client
+		client:send("Server received your message: " .. line .. "\n")
+	else
+		print("Error encountered. Reconnecting...")
+		socket_start()
+	end
 	-- client:close() -- Close the client connection
 end
 
@@ -85,10 +81,10 @@ while true do
 	framecount = (framecount + 1) % 60
 	--up, down, left, right, A, B, start, select
 	--joypad.set(1, {nil, nil, nil, nil, true, nil, "invert", nil}) -- Spam a and start
-	if (framecount >= 30) then
-		joypad.set(1, input) -- Spam a and start
+	if (framecount == 30) then
+		-- joypad.set(1, input) -- Spam a and start
+		socketRunner(client)
 	end
-	socketRunner(client)
 	emu.frameadvance()
 end
 

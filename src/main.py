@@ -8,9 +8,10 @@ def send_input(button):
 	data = {
 		"type": "input",
 		"button": button
-	}
+		}
 
-	json_str = json.dumps(data)
+	# This is a surprise tool that will help us later
+	json_str = json.dumps(data) + '\n' # Just kidding, socket needs a newline
 	json_bytes = json_str.encode("utf-8")
 	client_sock.sendall(json_bytes)
 	print("Sent some input")
