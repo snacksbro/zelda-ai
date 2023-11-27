@@ -1,0 +1,10 @@
+/luarocks
+/lua
+/lua_modules
+/.luarocks
+
+# virtualenv
+src/bin
+src/lib
+src/pyvenv.cfg
+
