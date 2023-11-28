@@ -2,7 +2,7 @@ local socket = require("socket.core")
 local json = require("json")
 
 local server, ip, port -- Scoping
-local _PORT = 8885
+local _PORT = 8886
 local sock = socket.tcp() -- "Master" object created
 
 -- Use a random port offered by the OS, or a predetermined?
@@ -24,23 +24,6 @@ end
 -- print(server)
 -- local ip, port = server:getsockname()
 
--- socketRunner: Called at a set interval, locks program until input is received by client
--- client: The client object as generated from socket_start()
-function socketRunner(client)
-	local line, err = client:receive("*l") -- Reading ONLY until a newline
-	if not err then
-		print("Received data from client: " .. line)
-		-- Process the received data as needed
-
-		-- Example: Send a response back to the client
-		client:send("Server received your message: " .. line .. "\n")
-	else
-		print("Error encountered. Reconnecting...")
-		socket_start()
-	end
-	-- client:close() -- Close the client connection
-end
-
 -- socket_start: Halts the program until a socket opens
 -- returns: client object as referenced in https://w3.impa.br/~diego/software/luasocket/tcp.html
 function socket_start()
@@ -51,20 +34,51 @@ function socket_start()
 	return client
 end
 
--- execute_input: Sets parameter of buttons to be "down"
--- buttons[]: Strings of each button in relation to input dictionary
-function exectute_input(buttons)
-	for button in buttons do
-		input[button] = true
-	end
-end
-
 -- reset_input: Resets all buttons to nil (off)
 -- input_dict: The main input dictionary
 function reset_input(input_dict)
 	for key, _ in pairs(input_dict) do
 		input_dict[key] = nil
 	end
+end
+
+-- execute_input: Sets parameter of buttons to be "down"
+-- buttons[]: Strings of each button in relation to input dictionary
+function exectute_input(buttons)
+	reset_input(input)
+	-- for button in buttons do
+		-- Doesn't quite support multiple buttons yet
+		input[buttons] = true
+	-- end
+end
+
+-- parse_packet: Reads the "type" field of the JSON packet and calls appropriate functions
+-- packet: A JSON string received from the client
+function parse_packet(packet)
+	packet_table = json.decode(packet)
+
+	-- Input packets...
+	if (packet_table["type"] == "input") then
+		exectute_input(packet_table["button"])
+	end
+end
+
+-- socketRunner: Called at a set interval, locks program until input is received by client
+-- client: The client object as generated from socket_start()
+function socketRunner(client)
+	local line, err = client:receive("*l") -- Reading ONLY until a newline
+	if not err then
+		print("Received data from client: " .. line)
+		-- Process the received data as needed
+		parse_packet(line)
+
+		-- Example: Send a response back to the client
+		client:send("Server received your message: " .. line .. "\n")
+	else
+		print("Error encountered. Reconnecting...")
+		socket_start()
+	end
+	-- client:close() -- Close the client connection
 end
 
 emu.speedmode("normal") -- Set emulator speed
@@ -99,8 +113,8 @@ while true do
 	framecount = (framecount + 1) % 60 -- Rollover per second
 	-- Once a second...
 	if (framecount == 30) then
-		-- joypad.set(1, input) -- Spam a and start
 		socketRunner(client)
+		joypad.set(1, input) -- Spam a and start
 	end
 	emu.frameadvance()
 end

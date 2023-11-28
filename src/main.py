@@ -19,7 +19,7 @@ def send_input(button):
 	print("Sent some input")
 
 # Connect to socket server
-server_address = ("0.0.0.0", 8885)
+server_address = ("0.0.0.0", 8886)
 
 # Generate a client object
 client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
