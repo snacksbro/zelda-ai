@@ -4,11 +4,13 @@ import json
 import sys
 import time
 
+# send_input: Sends a button event to the server
+# button: The button (string) to send
 def send_input(button):
 	data = {
 		"type": "input",
 		"button": button
-		}
+	}
 
 	# This is a surprise tool that will help us later
 	json_str = json.dumps(data) + '\n' # Just kidding, socket needs a newline
@@ -19,8 +21,10 @@ def send_input(button):
 # Connect to socket server
 server_address = ("0.0.0.0", 8885)
 
+# Generate a client object
 client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# Attempt to connect, if failure, terminate
 try:
 	client_sock.connect(server_address)
 	print("Connection successful!")

@@ -1,12 +1,10 @@
 local socket = require("socket.core")
 local json = require("json")
 
-print("socket working?")
--- TODO: Investigate why running this crashes since installing it (correctly?). There may be other example scripts using it, first step is to REPL test
 local server, ip, port -- Scoping
 local _PORT = 8885
+local sock = socket.tcp() -- "Master" object created
 
-sock = socket.tcp() -- "Master" object created
 -- Use a random port offered by the OS, or a predetermined?
 if not _PORT then
 	server = assert(sock:bind("*", 0)) -- Binding master to port
@@ -14,6 +12,7 @@ else
 	server = assert(sock:bind("*", _PORT)) -- Binding master to port
 end
 
+-- If the port was obtained...
 if (server) then
 	ip, port = sock:getsockname() -- Pulling out the ip/port listening
 	print("Port opened!\nWaiting on " .. ip .. ":" .. port)
@@ -25,6 +24,8 @@ end
 -- print(server)
 -- local ip, port = server:getsockname()
 
+-- socketRunner: Called at a set interval, locks program until input is received by client
+-- client: The client object as generated from socket_start()
 function socketRunner(client)
 	local line, err = client:receive("*l") -- Reading ONLY until a newline
 	if not err then
@@ -40,6 +41,8 @@ function socketRunner(client)
 	-- client:close() -- Close the client connection
 end
 
+-- socket_start: Halts the program until a socket opens
+-- returns: client object as referenced in https://w3.impa.br/~diego/software/luasocket/tcp.html
 function socket_start()
 	print("Waiting for connection...")
 	local client = sock:accept() -- Accept a new connection
@@ -47,11 +50,26 @@ function socket_start()
 	print("New connection established")
 	return client
 end
--- while true do
--- end
+
+-- execute_input: Sets parameter of buttons to be "down"
+-- buttons[]: Strings of each button in relation to input dictionary
+function exectute_input(buttons)
+	for button in buttons do
+		input[button] = true
+	end
+end
+
+-- reset_input: Resets all buttons to nil (off)
+-- input_dict: The main input dictionary
+function reset_input(input_dict)
+	for key, _ in pairs(input_dict) do
+		input_dict[key] = nil
+	end
+end
 
 emu.speedmode("normal") -- Set emulator speed
 
+-- The gamepad input table
 local input = {
 	up = nil,
 	down = nil,
@@ -78,9 +96,8 @@ local client = socket_start()
 local framecount = 0
 
 while true do
-	framecount = (framecount + 1) % 60
-	--up, down, left, right, A, B, start, select
-	--joypad.set(1, {nil, nil, nil, nil, true, nil, "invert", nil}) -- Spam a and start
+	framecount = (framecount + 1) % 60 -- Rollover per second
+	-- Once a second...
 	if (framecount == 30) then
 		-- joypad.set(1, input) -- Spam a and start
 		socketRunner(client)
