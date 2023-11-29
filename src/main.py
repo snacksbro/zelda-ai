@@ -33,6 +33,17 @@ except:
 	print("Connection failed, is port not online?")
 	sys.exit(0)
 
+# Get time data
+res = client_sock.recv(1024)
+res = json.loads(res.decode("utf-8"))
+
+if (res["type"] == "timer"):
+	current_time = int(res["current"])
+	max_time = int(res["max"])
+	print("Time captured successfully!")
+else:
+	print("Got unexpected packet of type " + res["type"])
+
 # Testing, send a B button every 5 seconds
 while True:
 	send_input("B")
