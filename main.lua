@@ -42,6 +42,20 @@ function reset_input(input_dict)
 	end
 end
 
+-- set_timer: Sends a packet to the client to sync time
+-- client: The client object
+-- current_time: The current frame count
+-- max_time: The highest the time can be before it "restarts"
+function set_timer(client, current_time, max_time)
+	data = {
+		type = "timer",
+		current = current_time,
+		max = max_time
+	}
+
+	client:send(json.encode(data) .. "\n")
+end
+
 -- execute_input: Sets parameter of buttons to be "down"
 -- buttons[]: Strings of each button in relation to input dictionary
 function exectute_input(buttons)
@@ -96,6 +110,11 @@ local input = {
 }
 
 local client = socket_start()
+local framecount = 0
+local framelimit = 60
+
+-- Ensuring Python is "aware" of the time
+set_timer(client, framecount, framelimit)
 
 -- Messing with OS. May just make a runfile instead...
 -- local command = "dir"
@@ -107,12 +126,10 @@ local client = socket_start()
 -- 	stdout:close()
 -- end
 
-local framecount = 0
-
 while true do
-	framecount = (framecount + 1) % 60 -- Rollover per second
+	framecount = (framecount + 1) % framelimit -- Rollover per second
 	-- Once a second...
-	if (framecount == 30) then
+	if (framecount == 0) then
 		socketRunner(client)
 		joypad.set(1, input) -- Spam a and start
 	end
