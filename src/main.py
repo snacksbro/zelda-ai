@@ -4,6 +4,9 @@ import json
 import sys
 import time
 
+current_time = 0
+max_time = 0
+
 # send_input: Sends a button event to the server
 # button: The button (string) to send
 def send_input(button):
@@ -17,6 +20,23 @@ def send_input(button):
 	json_bytes = json_str.encode("utf-8")
 	client_sock.sendall(json_bytes)
 	print("Sent some input")
+
+# update_time: Receives and parses the time packet
+# returns: A tuple (current_time, max_time) on success, 0 on failure
+def update_time():
+	# Get time data
+	res = client_sock.recv(1024)
+	res = json.loads(res.decode("utf-8"))
+
+	if (res["type"] == "timer"):
+		current_time = int(res["current"])
+		max_time = int(res["max"])
+		print("Time captured successfully!")
+		print("Got " + str(current_time) + " and " + str(max_time))
+		return (current_time, max_time)
+	else:
+		print("Got unexpected packet of type " + res["type"])
+		return 0
 
 # Connect to socket server
 server_address = ("0.0.0.0", 8886)
@@ -33,21 +53,14 @@ except:
 	print("Connection failed, is port not online?")
 	sys.exit(0)
 
-# Get time data
-res = client_sock.recv(1024)
-res = json.loads(res.decode("utf-8"))
-
-if (res["type"] == "timer"):
-	current_time = int(res["current"])
-	max_time = int(res["max"])
-	print("Time captured successfully!")
-else:
-	print("Got unexpected packet of type " + res["type"])
+current_time, max_time = update_time()
 
 # Testing, send a B button every 5 seconds
 while True:
-	send_input("B")
-	time.sleep(5)
+	current_time = (current_time + 1) % max_time
+	if (current_time == 0):
+		send_input("B")
+		# time.sleep(5)
 
 # finally:
 # 	client_sock.close()

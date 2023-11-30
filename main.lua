@@ -129,7 +129,7 @@ set_timer(client, framecount, framelimit)
 while true do
 	framecount = (framecount + 1) % framelimit -- Rollover per second
 	-- Once a second...
-	if (framecount == 30) then
+	if (framecount == 0) then
 		socketRunner(client)
 		joypad.set(1, input) -- Spam a and start
 	end
