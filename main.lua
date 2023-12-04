@@ -24,6 +24,43 @@ end
 -- print(server)
 -- local ip, port = server:getsockname()
 
+function build_bitmap()
+	local bitmap = {}
+	-- Not indexing from zero
+	for x=1,256 do
+		bitmap[x] = {}
+		for y=1,240 do
+			red, green, blue, palette = emu.getscreenpixel(x-1, y-1, true)
+			bitmap[x][y] = string.format("%x%x%x", red, green, blue)
+			-- bitmap[x][y] = {
+			-- 	r = red,
+			-- 	g = green,
+			-- 	b = blue
+			-- }
+		end
+	end
+
+	return bitmap
+end
+
+function send_bitmap(client, bitmap)
+	data = {
+		type = "screen",
+		raw_bitmap = bitmap
+	}
+
+	print("Sent bitmap of length " .. string.len(json.encode(data)))
+	client:send(json.encode(data) .. "\n")
+end
+
+function print_bitmap(bitmap)
+	for x=0,#bitmap do
+		for y=0,#bitmap[x] do
+			print(bitmap[x][y])
+		end
+	end
+end
+
 -- socket_start: Halts the program until a socket opens
 -- returns: client object as referenced in https://w3.impa.br/~diego/software/luasocket/tcp.html
 function socket_start()
@@ -87,16 +124,14 @@ function socketRunner(client)
 		parse_packet(line)
 
 		-- Example: Send a response back to the client
-		client:send("Server received your message: " .. line .. "\n")
+		-- client:send("Server received your message: " .. line .. "\n")
 	else
 		print("Error encountered. Reconnecting...")
 		socket_start()
 	end
 	-- client:close() -- Close the client connection
 end
-
 emu.speedmode("normal") -- Set emulator speed
-
 -- The gamepad input table
 local input = {
 	up = nil,
@@ -130,6 +165,10 @@ while true do
 	framecount = (framecount + 1) % framelimit -- Rollover per second
 	-- Once a second...
 	if (framecount == 0) then
+		bitmap = build_bitmap()
+		send_bitmap(client, bitmap)
+
+		-- print_bitmap(bitmap)
 		socketRunner(client)
 		joypad.set(1, input) -- Spam a and start
 	end
