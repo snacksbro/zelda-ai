@@ -9,6 +9,9 @@ max_time = 0
 current_bitmap = ""
 port = 8887
 
+def screen_processor(image):
+	pass
+
 # send_input: Sends a button event to the server
 # button: The button (string) to send
 def send_input(button):
