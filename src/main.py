@@ -42,10 +42,10 @@ def update_time():
 
 def recieve_bitmap():
 	res = b""
-	for i in range(463): # Lil magic number
+	for i in range(541): # Lil magic number
 		buf = client_sock.recv(1024) # 500KB
 		res += buf
-		if (i == 0 or i == 1 or i == 462):
+		if (i == 0 or i == 1 or i == 541):
 			print("got a packet..", i, buf)
 
 	res = json.loads(res.decode("utf-8"))

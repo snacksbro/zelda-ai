@@ -31,7 +31,7 @@ function build_bitmap()
 		bitmap[x] = {}
 		for y=1,240 do
 			red, green, blue, palette = emu.getscreenpixel(x-1, y-1, true)
-			bitmap[x][y] = string.format("%x%x%x", red, green, blue)
+			bitmap[x][y] = string.format("%02x%02x%02x", red, green, blue)
 			-- bitmap[x][y] = {
 			-- 	r = red,
 			-- 	g = green,
