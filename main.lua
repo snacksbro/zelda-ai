@@ -2,7 +2,7 @@ local socket = require("socket.core")
 local json = require("json")
 
 local server, ip, port -- Scoping
-local _PORT = 8886
+local _PORT = 8887
 local sock = socket.tcp() -- "Master" object created
 
 -- Use a random port offered by the OS, or a predetermined?
@@ -43,6 +43,19 @@ function build_bitmap()
 	return bitmap
 end
 
+function send_positions(client)
+	local player_pos_addr = 0x004D
+	local enemy_pos_addr = 0x0050
+
+	local data = {
+		type = "positions",
+		player = memory.readbyte(player_pos_addr),
+		enemy = memory.readbyte(enemy_pos_addr)
+	}
+
+	client:send(json.encode(data) .. "\n")
+end
+
 function send_bitmap(client, bitmap)
 	data = {
 		type = "screen",
@@ -51,6 +64,21 @@ function send_bitmap(client, bitmap)
 
 	print("Sent bitmap of length " .. string.len(json.encode(data)))
 	client:send(json.encode(data) .. "\n")
+end
+
+function send_percept(client, bitmap)
+	local player_pos_addr = 0x004D
+	local enemy_pos_addr = 0x0050
+
+	local data = {
+		type = "percept",
+		raw_bitmap = bitmap,
+		player = memory.readbyte(player_pos_addr),
+		enemy = memory.readbyte(enemy_pos_addr)
+	}
+
+	client:send(json.encode(data) .. "\n")
+
 end
 
 function print_bitmap(bitmap)
@@ -166,7 +194,9 @@ while true do
 	-- Once a second...
 	if (framecount == 0) then
 		bitmap = build_bitmap()
-		send_bitmap(client, bitmap)
+		-- send_bitmap(client, bitmap)
+		-- send_positions(client)
+		send_percept(client, bitmap)
 
 		-- print_bitmap(bitmap)
 		socketRunner(client)
