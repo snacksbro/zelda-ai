@@ -2,7 +2,7 @@ local socket = require("socket.core")
 local json = require("json")
 
 local server, ip, port -- Scoping
-local _PORT = 8886
+local _PORT = 8887
 local sock = socket.tcp() -- "Master" object created
 
 -- Use a random port offered by the OS, or a predetermined?
@@ -23,6 +23,75 @@ end
 
 -- print(server)
 -- local ip, port = server:getsockname()
+
+function build_bitmap()
+	local bitmap = {}
+	-- Not indexing from zero
+	for x=1,256 do
+		bitmap[x] = {}
+		for y=1,240 do
+			red, green, blue, palette = emu.getscreenpixel(x-1, y-1, true)
+			bitmap[x][y] = string.format("%02x%02x%02x", red, green, blue)
+			-- bitmap[x][y] = {
+			-- 	r = red,
+			-- 	g = green,
+			-- 	b = blue
+			-- }
+		end
+	end
+
+	return bitmap
+end
+
+function send_positions(client)
+	local player_pos_addr = 0x004D
+	local enemy_pos_addr = 0x0050
+
+	local data = {
+		type = "positions",
+		player = memory.readbyte(player_pos_addr),
+		enemy = memory.readbyte(enemy_pos_addr),
+	}
+
+	client:send(json.encode(data) .. "\n")
+end
+
+function send_bitmap(client, bitmap)
+	data = {
+		type = "screen",
+		raw_bitmap = bitmap
+	}
+
+	print("Sent bitmap of length " .. string.len(json.encode(data)))
+	client:send(json.encode(data) .. "\n")
+end
+
+function send_percept(client, bitmap)
+	local player_pos_addr = 0x004D
+	local enemy_pos_addr = 0x0050
+	local player_crouch_addr = 0x0017 -- 0 = is, 1 = not
+	local player_attack_addr = 0x020D -- o = can, ~0 = cooldown
+
+	local data = {
+		type = "percept",
+		raw_bitmap = bitmap,
+		player = memory.readbyte(player_pos_addr),
+		enemy = memory.readbyte(enemy_pos_addr),
+		player_is_crouching = memory.readbyte(player_crouch_addr),
+		player_is_attacking = memory.readbyte(player_attack_addr)
+	}
+
+	client:send(json.encode(data) .. "\n")
+
+end
+
+function print_bitmap(bitmap)
+	for x=0,#bitmap do
+		for y=0,#bitmap[x] do
+			print(bitmap[x][y])
+		end
+	end
+end
 
 -- socket_start: Halts the program until a socket opens
 -- returns: client object as referenced in https://w3.impa.br/~diego/software/luasocket/tcp.html
@@ -87,16 +156,14 @@ function socketRunner(client)
 		parse_packet(line)
 
 		-- Example: Send a response back to the client
-		client:send("Server received your message: " .. line .. "\n")
+		-- client:send("Server received your message: " .. line .. "\n")
 	else
 		print("Error encountered. Reconnecting...")
 		socket_start()
 	end
 	-- client:close() -- Close the client connection
 end
-
 emu.speedmode("normal") -- Set emulator speed
-
 -- The gamepad input table
 local input = {
 	up = nil,
@@ -130,6 +197,12 @@ while true do
 	framecount = (framecount + 1) % framelimit -- Rollover per second
 	-- Once a second...
 	if (framecount == 0) then
+		bitmap = build_bitmap()
+		-- send_bitmap(client, bitmap)
+		-- send_positions(client)
+		send_percept(client, bitmap)
+
+		-- print_bitmap(bitmap)
 		socketRunner(client)
 		joypad.set(1, input) -- Spam a and start
 	end
