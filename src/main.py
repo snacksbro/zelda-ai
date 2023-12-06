@@ -4,10 +4,14 @@ import json
 import sys
 import time
 
+
 current_time = 0
 max_time = 0
 current_bitmap = ""
 port = 8887
+
+def execute_AI():
+	pass
 
 def screen_processor(image):
 	pass
@@ -105,7 +109,10 @@ except:
 	print("Connection failed, is port not online?")
 	sys.exit(0)
 
+from zelda_ai import ZeldaBot # I should really do this better
+
 current_time, max_time = update_time()
+env = ZeldaBot()
 
 # Testing, send a B button every 5 seconds
 while True:
@@ -114,10 +121,13 @@ while True:
 		# bitmap = recieve_bitmap()
 		# positions = recieve_positions()
 		percept = recieve_percept()
-		send_input("B")
+		action = env.action_space.sample()
+		obs, reward, done, _ = env.step(action)
+		# send_input("B")
 		# time.sleep(5)
 
 # finally:
 # 	client_sock.close()
 # 	print("Connection terminated.")
+
 
