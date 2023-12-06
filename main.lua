@@ -50,7 +50,7 @@ function send_positions(client)
 	local data = {
 		type = "positions",
 		player = memory.readbyte(player_pos_addr),
-		enemy = memory.readbyte(enemy_pos_addr)
+		enemy = memory.readbyte(enemy_pos_addr),
 	}
 
 	client:send(json.encode(data) .. "\n")
@@ -69,12 +69,16 @@ end
 function send_percept(client, bitmap)
 	local player_pos_addr = 0x004D
 	local enemy_pos_addr = 0x0050
+	local player_crouch_addr = 0x0017 -- 0 = is, 1 = not
+	local player_attack_addr = 0x020D -- o = can, ~0 = cooldown
 
 	local data = {
 		type = "percept",
 		raw_bitmap = bitmap,
 		player = memory.readbyte(player_pos_addr),
-		enemy = memory.readbyte(enemy_pos_addr)
+		enemy = memory.readbyte(enemy_pos_addr),
+		player_is_crouching = memory.readbyte(player_crouch_addr),
+		player_is_attacking = memory.readbyte(player_attack_addr)
 	}
 
 	client:send(json.encode(data) .. "\n")
