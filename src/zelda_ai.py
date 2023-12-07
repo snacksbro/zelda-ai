@@ -1,10 +1,12 @@
 import gym
 from gym import spaces
 import numpy as np
-from main import send_input
+# from main import send_input
+import client
 
 class ZeldaBot(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+    percept = {}
 
     def __init__(self):
         self.screen_width = 256
@@ -61,7 +63,7 @@ class ZeldaBot(gym.Env):
 
     # Get Observation
     def _get_obs(self):
-        return np.array(percept)
+        return self.percept # Used to be a numpy array here
         # return {"agent": self._agent_location, "target": self._target_location}
 
     # Get info? I guess obs is just the raw data but info is computing it?
@@ -101,13 +103,13 @@ class ZeldaBot(gym.Env):
         # Map the action (element of {0,1,2,3}) to the direction we walk in
         # direction = self._action_to_direction[action]
         if (action == 0):
-            send_input("left")
+            client.send_input("left")
         elif (action == 1):
-            send_input("right")
+            client.send_input("right")
         elif (action == 2):
-            send_input("down")
+            client.send_input("down")
         elif (action == 3):
-            send_input("B")
+            client.send_input("B")
 
         # We use `np.clip` to make sure we don't leave the grid
         # self._agent_location = np.clip(
@@ -117,7 +119,7 @@ class ZeldaBot(gym.Env):
 
         # Episode endings
         # Death, win
-        terminated = player_is_dead()
+        terminated = client.player_is_dead()
         if not terminated:
             reward = 1.0
         else:
