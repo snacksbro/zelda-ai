@@ -26,7 +26,7 @@ This project is an AI that uses reinforcement learning to battle the final boss 
 ### Starting the Client/AI
 1. Navigate to `src/`
 2. (Optional) Enter the environment with `source bin/activate`
-3. Run `python3 client.py`
+3. Run `python3 main.py`
 
 Both FCEUX and your terminal's consoles should begin producing output, and Link should begin doing random button presses to learn.
 
