@@ -2,7 +2,7 @@ local socket = require("socket.core")
 local json = require("json")
 
 local server, ip, port -- Scoping
-local _PORT = 8887
+local _PORT = 8888
 local sock = socket.tcp() -- "Master" object created
 
 -- Use a random port offered by the OS, or a predetermined?
@@ -145,6 +145,11 @@ function parse_packet(packet)
 	-- Input packets...
 	if (packet_table["type"] == "input") then
 		exectute_input(packet_table["button"])
+	end
+
+	if (packet_table["type"] == "reset") then
+		local state = savestate.object(10)
+		savestate.load(state)
 	end
 end
 

@@ -38,10 +38,12 @@ class ZeldaBot(gym.Env):
     # Which will load the savestate, restart the server script, and spawn the python client again
     def reset(self, seed=None, options=None):
         # We need the following line to seed self.np_random
+        print("Attempting reset!")
         super().reset(seed=seed)
 
         observation = self._get_obs()
         info = self._get_info()
+        client.send_reset()
 
         return observation, info
 
@@ -60,11 +62,13 @@ class ZeldaBot(gym.Env):
         # Episode endings
         # Death, win
 
-        terminated = True if self.percept["player_health"] <= 0 else False #client.player_is_dead()
+        terminated = True if int(self.percept["player_health"]) <= 0 else False #client.player_is_dead()
+        print("Terminated status:", terminated)
         if not terminated:
             reward = 1.0
         else:
             reward = 0.0
+            self.reset()
 
         observation = self._get_obs() # Should read from percept packet
         # info = self._get_info()
