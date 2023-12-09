@@ -7,7 +7,7 @@ import time
 current_time = 0
 max_time = 0
 current_bitmap = ""
-port = 8887
+port = 8888
 
 def execute_AI():
 	pass
@@ -16,7 +16,7 @@ def screen_processor(image):
 	pass
 
 def player_is_dead():
-  return False
+	return False
 
 # send_input: Sends a button event to the server
 # button: The button (string) to send
@@ -27,6 +27,15 @@ def send_input(button):
 	}
 
 	# This is a surprise tool that will help us later
+	json_str = json.dumps(data) + '\n' # Just kidding, socket needs a newline
+	json_bytes = json_str.encode("utf-8")
+	client_sock.sendall(json_bytes)
+	print("Sent some input")
+
+def send_reset():
+	data = {
+		"type": "reset"
+	}
 	json_str = json.dumps(data) + '\n' # Just kidding, socket needs a newline
 	json_bytes = json_str.encode("utf-8")
 	client_sock.sendall(json_bytes)
@@ -90,6 +99,7 @@ def recieve_percept():
 	if (res["type"] == "percept"):
 		current_bitmap = res["raw_bitmap"]
 		print("Positions recieved!\nGot", res["player"], res["enemy"])
+		print("Health: ", res["player_health"])
 		print("got bitmap!")
 		return res
 		# return (current_bitmap, res["player"], res["enemy"], res["player_is_crouching"], res["player_is_attacking"], res["player_health"])
