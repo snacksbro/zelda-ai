@@ -20,8 +20,9 @@ This project is an AI that uses reinforcement learning to battle the final boss 
 1. Start FCEUX
 2. Load up a Zelda II (PAL release) ROM (not provided)
 3. Load the savestate located in the root directory `zelda2-darklink.sav`
-4. In FCEUX, go to File, then Open Lua Script
-5. Select `main.lua` and hit Run
+4. After loading the savestate, press `0` to open savestate slot 0, then press `i` to save into it. This is because each episode loads from slot 0 and loading from a file does not write to any savestate slot
+5. In FCEUX, go to File, then Open Lua Script
+6. Select `main.lua` and hit Run
 
 ### Starting the Client/AI
 1. Navigate to `src/`
