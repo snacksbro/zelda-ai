@@ -10,6 +10,9 @@ src/bin
 src/lib
 src/pyvenv.cfg
 
+# Python
+src/__pycache__
+
 # Misc
 writeup.md
 tags
