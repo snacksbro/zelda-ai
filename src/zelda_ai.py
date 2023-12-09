@@ -6,9 +6,9 @@ import client
 
 class ZeldaBot(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
-    percept = {}
 
     def __init__(self):
+        self.percept = {}
         self.screen_width = 256
         self.screen_height = 240
         self.current_episode = 0
@@ -119,7 +119,8 @@ class ZeldaBot(gym.Env):
 
         # Episode endings
         # Death, win
-        terminated = client.player_is_dead()
+
+        terminated = True if self.percept["player_health"] <= 0 else False #client.player_is_dead()
         if not terminated:
             reward = 1.0
         else:

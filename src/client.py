@@ -91,7 +91,8 @@ def recieve_percept():
 		current_bitmap = res["raw_bitmap"]
 		print("Positions recieved!\nGot", res["player"], res["enemy"])
 		print("got bitmap!")
-		return (current_bitmap, res["player"], res["enemy"], res["player_is_crouching"], res["player_is_attacking"])
+		return res
+		# return (current_bitmap, res["player"], res["enemy"], res["player_is_crouching"], res["player_is_attacking"], res["player_health"])
 	else:
 		print("Got unexpected packet of type " + res["type"])
 		return 0
