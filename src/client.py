@@ -8,6 +8,11 @@ current_time = 0
 max_time = 0
 current_bitmap = ""
 port = 8888
+model_info = {
+	"step_num": 0,
+	"episode_num": 0,
+	"current_reward": 0
+}
 
 def execute_AI():
 	pass
@@ -18,12 +23,18 @@ def screen_processor(image):
 def player_is_dead():
 	return False
 
+def update_model_info(step_num, episode_num, current_reward):
+	model_info["step_num"] = step_num
+	model_info["episode_num"] = episode_num
+	model_info["current_reward"] = current_reward
+
 # send_input: Sends a button event to the server
 # button: The button (string) to send
 def send_input(button):
 	data = {
 		"type": "input",
-		"button": button
+		"button": button,
+		"model_info": model_info
 	}
 
 	# This is a surprise tool that will help us later

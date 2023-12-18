@@ -13,6 +13,7 @@ while True:
 		env.percept = client.recieve_percept()
 		action = env.action_space.sample()
 		obs, reward, done, _ = env.step(action)
+		client.update_model_info(env.current_step, env.current_episode, env.current_reward)
 		# send_input("B")
 		# time.sleep(5)
 

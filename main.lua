@@ -137,10 +137,32 @@ function exectute_input(buttons)
 	-- end
 end
 
+function update_model_info(packet)
+	-- Updating max_reward if it's a new record
+	if (packet.current_reward > model_info["max_reward"]) then
+		model_info["max_reward"] = packet.current_reward
+	end
+	-- Updating the rest of the variables regardless
+	model_info["current_reward"] = packet.current_reward
+	model_info["episode_num"] = packet.episode_num
+	model_info["step_num"] = packet.step_num
+	-- TODO: Implement timing and have a function to convert to minutes
+end
+
+function draw_model_info(model_info)
+	model_string = "Step/Episode: " .. model_info["step_num"] .. "/" .. model_info["episode_num"] .. "\nCurrent/Max Reward: " .. model_info["current_reward"] .. "/" .. model_info["max_reward"] .. "\nEpisode/Total Time Elapsed: " .. model_info["time_elapsed_episode"] .. "/" .. model_info["time_elapsed_total"]
+	gui.drawtext(0, 0, model_string)
+end
+
 -- parse_packet: Reads the "type" field of the JSON packet and calls appropriate functions
 -- packet: A JSON string received from the client
 function parse_packet(packet)
 	packet_table = json.decode(packet)
+
+	-- If there's model_info. With this, a packet can include both commands and keep the model updated
+	if (packet_table["model_info"] ~= nil) then
+		update_model_info(packet_table["model_info"])
+	end
 
 	-- Input packets...
 	if (packet_table["type"] == "input") then
@@ -183,6 +205,16 @@ local input = {
 	select = nil
 }
 
+-- The model information. Time is stored in seconds
+model_info = {
+	episode_num = 0,
+	step_num = 0,
+	current_reward = 0,
+	max_reward = 0,
+	time_elapsed_total = 0,
+	time_elapsed_episode = 0
+}
+
 local client = socket_start()
 local framecount = 0
 local framelimit = 60
@@ -212,6 +244,7 @@ while true do
 		-- print_bitmap(bitmap)
 		socketRunner(client)
 		joypad.set(1, input) -- Spam a and start
+		draw_model_info(model_info)
 	end
 	emu.frameadvance()
 end

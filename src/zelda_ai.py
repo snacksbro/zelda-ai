@@ -13,6 +13,7 @@ class ZeldaBot(gym.Env):
         self.screen_height = 240
         self.current_episode = 0
         self.current_step = 0
+        self.current_reward = 0
 
         # We have 4 actions, corresponding to "move left", "move right", "attack", "crouch"
         self.action_space = spaces.Discrete(4)
@@ -50,6 +51,7 @@ class ZeldaBot(gym.Env):
     def step(self, action):
         # Map the action (element of {0,1,2,3}) to the direction we walk in
         # direction = self._action_to_direction[action]
+        # TODO: I should *probably* decouple this and just have main do it
         if (action == 0):
             client.send_input("left")
         elif (action == 1):
@@ -75,6 +77,7 @@ class ZeldaBot(gym.Env):
 
         # if self.render_mode == "human":
         #     self._render_frame()
+        self.current_reward = reward # May refactor this later
 
         return observation, reward, terminated, {} #False, info
 
