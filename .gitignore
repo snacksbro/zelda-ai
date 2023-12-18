@@ -16,4 +16,6 @@ src/__pycache__
 # Misc
 writeup.md
 tags
+unix/
+run.sh
 
