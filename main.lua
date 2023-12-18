@@ -244,8 +244,8 @@ while true do
 		-- print_bitmap(bitmap)
 		socketRunner(client)
 		joypad.set(1, input) -- Spam a and start
-		draw_model_info(model_info)
 	end
 	emu.frameadvance()
+	draw_model_info(model_info)
 end
 
