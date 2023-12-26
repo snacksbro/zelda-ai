@@ -1,3 +1,8 @@
+-- luacheck: ignore emu
+-- luacheck: ignore joypad
+-- luacheck: ignore savestate
+-- luacheck: ignore memory
+-- luacheck: ignore gui
 local socket = require("socket.core")
 local json = require("json")
 
@@ -13,7 +18,7 @@ else
 end
 
 -- If the port was obtained...
-if (server) then
+if server then
 	ip, port = sock:getsockname() -- Pulling out the ip/port listening
 	print("Port opened!\nWaiting on " .. ip .. ":" .. port)
 	sock:listen(-1) -- -1 means it can accept infinite clients. Now this is a "server" object
@@ -24,13 +29,13 @@ end
 -- print(server)
 -- local ip, port = server:getsockname()
 
-function build_bitmap()
+local function build_bitmap()
 	local bitmap = {}
 	-- Not indexing from zero
-	for x=1,256 do
+	for x = 1, 256 do
 		bitmap[x] = {}
-		for y=1,240 do
-			red, green, blue, palette = emu.getscreenpixel(x-1, y-1, true)
+		for y = 1, 240 do
+			local red, green, blue, palette = emu.getscreenpixel(x - 1, y - 1, true)
 			bitmap[x][y] = string.format("%02x%02x%02x", red, green, blue)
 			-- bitmap[x][y] = {
 			-- 	r = red,
@@ -43,7 +48,7 @@ function build_bitmap()
 	return bitmap
 end
 
-function send_positions(client)
+local function send_positions(client)
 	local player_pos_addr = 0x004D
 	local enemy_pos_addr = 0x0050
 
@@ -56,17 +61,17 @@ function send_positions(client)
 	client:send(json.encode(data) .. "\n")
 end
 
-function send_bitmap(client, bitmap)
-	data = {
+local function send_bitmap(client, bitmap)
+	local data = {
 		type = "screen",
-		raw_bitmap = bitmap
+		raw_bitmap = bitmap,
 	}
 
 	print("Sent bitmap of length " .. string.len(json.encode(data)))
 	client:send(json.encode(data) .. "\n")
 end
 
-function send_percept(client, bitmap)
+local function send_percept(client, bitmap)
 	local player_pos_addr = 0x004D
 	local enemy_pos_addr = 0x0050
 	local player_crouch_addr = 0x0017 -- 0 = is, 1 = not
@@ -81,15 +86,15 @@ function send_percept(client, bitmap)
 		enemy = memory.readbyte(enemy_pos_addr),
 		player_is_crouching = memory.readbyte(player_crouch_addr),
 		player_is_attacking = memory.readbyte(player_attack_addr),
-		player_health = memory.readbyte(player_health)
+		player_health = memory.readbyte(player_health),
 	}
 
 	client:send(json.encode(data) .. "\n")
 end
 
-function print_bitmap(bitmap)
-	for x=0,#bitmap do
-		for y=0,#bitmap[x] do
+local function print_bitmap(bitmap)
+	for x = 0, #bitmap do
+		for y = 0, #bitmap[x] do
 			print(bitmap[x][y])
 		end
 	end
@@ -97,7 +102,7 @@ end
 
 -- socket_start: Halts the program until a socket opens
 -- returns: client object as referenced in https://w3.impa.br/~diego/software/luasocket/tcp.html
-function socket_start()
+local function socket_start()
 	print("Waiting for connection...")
 	local client = sock:accept() -- Accept a new connection
 	client:settimeout(5) -- Set timeout to 5 seconds
@@ -107,7 +112,7 @@ end
 
 -- reset_input: Resets all buttons to nil (off)
 -- input_dict: The main input dictionary
-function reset_input(input_dict)
+local function reset_input(input_dict)
 	for key, _ in pairs(input_dict) do
 		input_dict[key] = nil
 	end
@@ -117,11 +122,11 @@ end
 -- client: The client object
 -- current_time: The current frame count
 -- max_time: The highest the time can be before it "restarts"
-function set_timer(client, current_time, max_time)
-	data = {
+local function set_timer(client, current_time, max_time)
+	local data = {
 		type = "timer",
 		current = current_time,
-		max = max_time
+		max = max_time,
 	}
 
 	client:send(json.encode(data) .. "\n")
@@ -129,47 +134,58 @@ end
 
 -- execute_input: Sets parameter of buttons to be "down"
 -- buttons[]: Strings of each button in relation to input dictionary
-function exectute_input(buttons)
+local function exectute_input(buttons)
 	reset_input(input)
 	-- for button in buttons do
-		-- Doesn't quite support multiple buttons yet
-		input[buttons] = true
+	-- Doesn't quite support multiple buttons yet
+	input[buttons] = true
 	-- end
 end
 
-function update_model_info(packet)
-	-- Updating max_reward if it's a new record
-	if (packet.current_reward > model_info["max_reward"]) then
-		model_info["max_reward"] = packet.current_reward
-	end
-	-- Updating the rest of the variables regardless
-	model_info["current_reward"] = packet.current_reward
-	model_info["episode_num"] = packet.episode_num
-	model_info["step_num"] = packet.step_num
-	-- TODO: Implement timing and have a function to convert to minutes
-end
+-- local function model_info.update(packet)
+-- 	-- Updating max_reward if it's a new record
+-- 	if packet.current_reward > model_info["max_reward"] then
+-- 		model_info["max_reward"] = packet.current_reward
+-- 	end
+-- 	-- Updating the rest of the variables regardless
+-- 	model_info["current_reward"] = packet.current_reward
+-- 	model_info["episode_num"] = packet.episode_num
+-- 	model_info["step_num"] = packet.step_num
+-- 	-- TODO: Implement timing and have a function to convert to minutes
+-- end
 
-function draw_model_info(model_info)
-	model_string = "Step/Episode: " .. model_info["step_num"] .. "/" .. model_info["episode_num"] .. "\nCurrent/Max Reward: " .. model_info["current_reward"] .. "/" .. model_info["max_reward"] .. "\nEpisode/Total Time Elapsed: " .. model_info["time_elapsed_episode"] .. "/" .. model_info["time_elapsed_total"]
-	gui.drawtext(0, 0, model_string)
-end
+-- local function draw_model_info(model_info)
+-- 	local model_string = "Step/Episode: "
+-- 		.. model_info["step_num"]
+-- 		.. "/"
+-- 		.. model_info["episode_num"]
+-- 		.. "\nCurrent/Max Reward: "
+-- 		.. model_info["current_reward"]
+-- 		.. "/"
+-- 		.. model_info["max_reward"]
+-- 		.. "\nEpisode/Total Time Elapsed: "
+-- 		.. model_info["time_elapsed_episode"]
+-- 		.. "/"
+-- 		.. model_info["time_elapsed_total"]
+-- 	gui.drawtext(0, 0, model_string)
+-- end
 
 -- parse_packet: Reads the "type" field of the JSON packet and calls appropriate functions
 -- packet: A JSON string received from the client
-function parse_packet(packet)
-	packet_table = json.decode(packet)
+local function parse_packet(packet)
+	local packet_table = json.decode(packet)
 
 	-- If there's model_info. With this, a packet can include both commands and keep the model updated
-	if (packet_table["model_info"] ~= nil) then
-		update_model_info(packet_table["model_info"])
+	if packet_table["model_info"] ~= nil then
+		model_info:update(packet_table["model_info"])
 	end
 
 	-- Input packets...
-	if (packet_table["type"] == "input") then
+	if packet_table["type"] == "input" then
 		exectute_input(packet_table["button"])
 	end
 
-	if (packet_table["type"] == "reset") then
+	if packet_table["type"] == "reset" then
 		local state = savestate.object(10)
 		savestate.load(state)
 	end
@@ -177,7 +193,7 @@ end
 
 -- socketRunner: Called at a set interval, locks program until input is received by client
 -- client: The client object as generated from socket_start()
-function socketRunner(client)
+local function socketRunner(client)
 	local line, err = client:receive("*l") -- Reading ONLY until a newline
 	if not err then
 		print("Received data from client: " .. line)
@@ -202,7 +218,7 @@ local input = {
 	A = nil,
 	B = true,
 	start = nil,
-	select = nil
+	select = nil,
 }
 
 -- The model information. Time is stored in seconds
@@ -212,7 +228,33 @@ model_info = {
 	current_reward = 0,
 	max_reward = 0,
 	time_elapsed_total = 0,
-	time_elapsed_episode = 0
+	time_elapsed_episode = 0,
+	update = function(self, packet)
+		-- Updating max_reward if it's a new record
+		if packet.current_reward > self.max_reward then
+			self.max_reward = packet.current_reward
+		end
+		-- Updating the rest of the variables regardless
+		self.current_reward = packet.current_reward
+		self.episode_num = packet.episode_num
+		self.step_num = packet.step_num
+		-- TODO: Implement timing and have a function to convert to minutes
+	end,
+	draw = function(self)
+		local model_string = "Step/Episode: "
+			.. self.step_num
+			.. "/"
+			.. self.episode_num
+			.. "\nCurrent/Max Reward: "
+			.. self.current_reward
+			.. "/"
+			.. self.max_reward
+			.. "\nEpisode/Total Time Elapsed: "
+			.. self.time_elapsed_episode
+			.. "/"
+			.. self.time_elapsed_total
+		gui.drawtext(0, 0, model_string)
+	end,
 }
 
 local client = socket_start()
@@ -235,8 +277,8 @@ set_timer(client, framecount, framelimit)
 while true do
 	framecount = (framecount + 1) % framelimit -- Rollover per second
 	-- Once a second...
-	if (framecount == 0) then
-		bitmap = build_bitmap()
+	if framecount == 0 then
+		local bitmap = build_bitmap()
 		-- send_bitmap(client, bitmap)
 		-- send_positions(client)
 		send_percept(client, bitmap)
@@ -246,6 +288,5 @@ while true do
 		joypad.set(1, input) -- Spam a and start
 	end
 	emu.frameadvance()
-	draw_model_info(model_info)
+	model_info:draw()
 end
-
