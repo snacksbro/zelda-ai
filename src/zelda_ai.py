@@ -17,7 +17,8 @@ class ZeldaBot(gym.Env):
         self.current_step = 0
         self.current_reward = 0
 
-        # We have 4 actions, corresponding to "move left", "move right", "attack", "crouch"
+        # We have 4 actions, corresponding to:
+        # "move left", "move right", "attack", "crouch"
         self.action_space = spaces.Discrete(4)
         self.player_location = 0
         self.enemy_location = 0
@@ -38,7 +39,8 @@ class ZeldaBot(gym.Env):
         }
 
     # All that really needs to happen here is to send the reset packet
-    # Which will load the savestate, restart the server script, and spawn the python client again
+    # Which will load the savestate, restart the server script,
+    # and spawn the python client again
     def reset(self, seed=None, options=None):
         # We need the following line to seed self.np_random
         print("Attempting reset!")
